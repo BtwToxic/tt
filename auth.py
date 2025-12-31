@@ -1,35 +1,45 @@
 import random
-import requests
-import platform
 import time
+import requests
 from flask import request
 
-from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, ADMIN_USER
-from state import get_password, set_password, set_alert
-
-RESET_CODE = None
+from config import ADMIN_USER, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+from state import (
+    get_password,
+    set_password,
+    set_alert,
+    set_otp,
+    verify_otp
+)
 
 def check_login(u, p):
-    if u == ADMIN_USER and p == get_password():
-        set_alert("✅ Login successful")
-        return True
-    return False
+    if u != ADMIN_USER:
+        set_alert("❌ Invalid username")
+        return False
+
+    if p != get_password():
+        set_alert("❌ Wrong password")
+        return False
+
+    set_alert("✅ Login successful")
+    return True
 
 def generate_code():
-    global RESET_CODE
-    RESET_CODE = str(random.randint(100000, 999999))
+    code = str(random.randint(100000, 999999))
+    set_otp(code)
 
     ip = request.remote_addr or "unknown"
-    device = request.headers.get("User-Agent", "unknown")
+    ua = request.headers.get("User-Agent", "unknown")
 
     msg = f"""
 🔐 PASSWORD RESET REQUEST
 
-Code: {RESET_CODE}
+OTP: {code}
+Valid: 10 minutes
 
 IP: {ip}
 Device:
-{device}
+{ua}
 
 Time: {time.ctime()}
 """
@@ -38,18 +48,20 @@ Time: {time.ctime()}
         try:
             requests.post(
                 f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
-                data={
-                    "chat_id": TELEGRAM_CHAT_ID,
-                    "text": msg
-                },
+                data={"chat_id": TELEGRAM_CHAT_ID, "text": msg},
                 timeout=5
             )
         except Exception as e:
             print("Telegram error:", e)
 
-def verify_code(code):
-    return code == RESET_CODE
+    set_alert("📩 OTP sent to Telegram (valid 10 min)")
 
-def set_new_password(new_pass):
+def reset_password(code, new_pass):
+    ok, msg = verify_otp(code)
+    if not ok:
+        set_alert(msg)
+        return False
+
     set_password(new_pass)
     set_alert("🔐 Password reset successful")
+    return True
