@@ -7,7 +7,7 @@ import os, time, hashlib, requests, uuid
 from auth import check_login, is_2fa_enabled
 from railway import list_projects
 from state import get_alert, set_alert
-import config 
+from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID 
 
 app = Flask(__name__)
 app.secret_key = "railway-final-auth"
