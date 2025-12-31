@@ -3,7 +3,7 @@ import time
 import requests
 from flask import request
 
-from config import ADMIN_USER, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 from state import (
     get_password,
     set_password,
@@ -29,17 +29,6 @@ def check_login(u, p):
 
 
 # =========================
-# 🔐 2FA FLAG (ADDED)
-# =========================
-def is_2fa_enabled(username):
-    """
-    Enable / disable 2FA per user.
-    Currently only ADMIN_USER has 2FA.
-    """
-    return username == ADMIN_USER
-
-
-# =========================
 # OTP GENERATION (RESET)
 # =========================
 def generate_code():
@@ -50,7 +39,7 @@ def generate_code():
     ua = request.headers.get("User-Agent", "unknown")
 
     msg = f"""
-🔐 PASSWORD RESET REQUEST
+🔐 TOXIC PASSWORD RESET REQUEST
 
 OTP: {code}
 Valid: 10 minutes
