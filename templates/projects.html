@@ -1,0 +1,17 @@
+<link rel="stylesheet" href="/static/style.css">
+
+<div class="card">
+  <h2>Railway Projects</h2>
+
+  {% if alert %}
+    <div class="alert">{{ alert }}</div>
+  {% endif %}
+
+  {% for p in projects %}
+    <a href="/project/{{ p.node.id }}">
+      📦 {{ p.node.name }}
+    </a>
+  {% endfor %}
+
+  <a href="/logout">Logout</a>
+</div>
