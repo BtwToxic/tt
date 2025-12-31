@@ -1,107 +1,127 @@
-from flask import Flask, render_template, request, redirect, session
 import os
 import time
+from flask import (
+    Flask,
+    render_template,
+    request,
+    redirect,
+    session
+)
 
 from auth import check_login, generate_code, reset_password
 from railway import list_projects
-from state import get_alert, set_alert
+from state import get_alert, set_alert, get_otp_expiry
 
 app = Flask(__name__)
 app.secret_key = "railway-final-auth"
 
-# ==========================
-# RATE LIMIT CONFIG
-# ==========================
-MAX_ATTEMPTS = 3
-BLOCK_TIME = 60  # seconds
+# =========================
+# CONFIG
+# =========================
+MAX_LOGIN_ATTEMPTS = 3
+BLOCK_TIME = 10  # seconds
 
-LOGIN_STATE = {}  
-# ip -> {
-#   "attempts": int,
-#   "blocked_until": timestamp
-# }
+# =========================
+# HELPERS
+# =========================
+def is_blocked():
+    blocked_until = session.get("blocked_until")
+    if not blocked_until:
+        return False, 0
+
+    remaining = int(blocked_until - time.time())
+    if remaining <= 0:
+        session.pop("blocked_until", None)
+        session.pop("attempts", None)
+        return False, 0
+
+    return True, remaining
 
 
-# ==========================
+# =========================
+# GLOBAL ROUTE PROTECTION
+# =========================
+@app.before_request
+def protect_routes():
+    protected = ["/projects"]
+
+    if request.path in protected:
+        if not session.get("admin"):
+            return redirect("/")
+
+
+# =========================
 # LOGIN
-# ==========================
+# =========================
 @app.route("/", methods=["GET", "POST"])
 def login():
-    ip = request.remote_addr or "unknown"
-    now = time.time()
     alert = get_alert()
 
-    state = LOGIN_STATE.get(ip, {
-        "attempts": 0,
-        "blocked_until": 0
-    })
-
-    # 🔓 unblock after time
-    if state["blocked_until"] and now > state["blocked_until"]:
-        state = {"attempts": 0, "blocked_until": 0}
-        LOGIN_STATE[ip] = state
-
-    # 🚫 still blocked
-    if state["blocked_until"] > now:
-        remaining = int(state["blocked_until"] - now)
+    # ---- block check (LIVE TIMER SUPPORT) ----
+    blocked, remaining = is_blocked()
+    if blocked:
         set_alert(f"🚫 You are blocked for {remaining}s")
         return render_template("login.html", alert=get_alert())
 
     if request.method == "POST":
-        ok = check_login(
-            request.form.get("user"),
-            request.form.get("pass")
-        )
+        user = request.form.get("user")
+        password = request.form.get("pass")
+
+        ok = check_login(user, password)
 
         if ok:
             session["admin"] = True
-            LOGIN_STATE[ip] = {"attempts": 0, "blocked_until": 0}
+            session.pop("attempts", None)
+            session.pop("blocked_until", None)
             return redirect("/projects")
 
-        # ❌ wrong login
-        state["attempts"] += 1
-        attempts_left = MAX_ATTEMPTS - state["attempts"]
+        # ---- failed attempt ----
+        session["attempts"] = session.get("attempts", 0) + 1
+        left = MAX_LOGIN_ATTEMPTS - session["attempts"]
 
-        if attempts_left <= 0:
-            state["blocked_until"] = now + BLOCK_TIME
-            set_alert("🚫 Too many attempts. Blocked for 1 minute")
+        if left <= 0:
+            session["blocked_until"] = time.time() + BLOCK_TIME
+            set_alert(f"🚫 You are blocked for {BLOCK_TIME}s")
         else:
-            set_alert(f"❌ Wrong credentials | Attempts left: {attempts_left}")
+            set_alert(f"❌ Wrong credentials ({left} attempts left)")
 
-        LOGIN_STATE[ip] = state
-        return redirect("/")
-
-    return render_template("login.html", alert=alert)
+    return render_template("login.html", alert=get_alert())
 
 
-# ==========================
+# =========================
 # PROJECTS (PROTECTED)
-# ==========================
+# =========================
 @app.route("/projects")
 def projects():
     if not session.get("admin"):
         return redirect("/")
+
+    projects = list_projects()
     return render_template(
         "projects.html",
-        projects=list_projects(),
+        projects=projects,
         alert=get_alert()
     )
 
 
-# ==========================
+# =========================
 # FORGOT PASSWORD
-# ==========================
+# =========================
 @app.route("/forgot", methods=["GET", "POST"])
 def forgot():
     if request.method == "POST":
         generate_code()
         return redirect("/reset")
-    return render_template("forgot.html", alert=get_alert())
+
+    return render_template(
+        "forgot.html",
+        alert=get_alert()
+    )
 
 
-# ==========================
-# RESET PASSWORD
-# ==========================
+# =========================
+# RESET PASSWORD (OTP)
+# =========================
 @app.route("/reset", methods=["GET", "POST"])
 def reset():
     if request.method == "POST":
@@ -110,12 +130,17 @@ def reset():
             request.form.get("newpass")
         )
         return redirect("/")
-    return render_template("reset.html", alert=get_alert())
+
+    return render_template(
+        "reset.html",
+        alert=get_alert(),
+        otp_expiry=get_otp_expiry()
+    )
 
 
-# ==========================
+# =========================
 # LOGOUT
-# ==========================
+# =========================
 @app.route("/logout")
 def logout():
     session.clear()
@@ -123,9 +148,9 @@ def logout():
     return redirect("/")
 
 
-# ==========================
+# =========================
 # START
-# ==========================
+# =========================
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
