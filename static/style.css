@@ -87,3 +87,12 @@ a {
 a:hover {
   text-decoration: underline;
   }
+
+.alert {
+  background: rgba(34,197,94,0.2);
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  text-align: center;
+  font-weight: 600;
+}
