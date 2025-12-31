@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, session
 from auth import check_login, generate_code, verify_code, set_new_password
 from railway import list_services
+import os
 
 app = Flask(__name__)
 app.secret_key = "simple-secret"
@@ -39,5 +40,8 @@ def reset():
             set_new_password(request.form["newpass"])
             return redirect("/")
     return render_template("reset.html")
+    
 
-app.run(host="0.0.0.0", port=5000)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
