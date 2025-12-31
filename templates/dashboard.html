@@ -1,5 +1,15 @@
-<h2>Railway Services</h2>
-{% for s in services %}
-  <div>{{ s.node.name }} ({{ s.node.id }})</div>
-{% endfor %}
-<a href="/logout">Logout</a>
+<link rel="stylesheet" href="/static/style.css">
+
+<div class="card">
+  <h2>Dashboard</h2>
+
+  {% if alert %}
+    <div class="alert">{{ alert }}</div>
+  {% endif %}
+
+  {% for s in services %}
+    <div>{{ s.node.name }}</div>
+  {% endfor %}
+
+  <a href="/logout">Logout</a>
+</div>
