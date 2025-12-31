@@ -2,10 +2,16 @@
 
 <div class="card">
   <h2>Admin Login</h2>
+
+  {% if alert %}
+    <div class="alert">{{ alert }}</div>
+  {% endif %}
+
   <form method="post">
     <input name="user" placeholder="Username">
     <input name="pass" type="password" placeholder="Password">
     <button>Login</button>
   </form>
+
   <a href="/forgot">Forgot password?</a>
 </div>
