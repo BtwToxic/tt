@@ -1,0 +1,5 @@
+<h2>Railway Services</h2>
+{% for s in services %}
+  <div>{{ s.node.name }} ({{ s.node.id }})</div>
+{% endfor %}
+<a href="/logout">Logout</a>
