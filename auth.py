@@ -3,7 +3,7 @@ import time
 import requests
 from flask import request
 
-from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, ADMIN_USER
 from state import (
     get_password,
     set_password,
@@ -16,6 +16,10 @@ from state import (
 # EXISTING LOGIN
 # =========================
 def check_login(u, p):
+    if not ADMIN_USER:
+        set_alert("❌ Admin user not configured")
+        return False
+
     if u != ADMIN_USER:
         set_alert("❌ Invalid username")
         return False
