@@ -1,8 +1,8 @@
 {
   "admin_user": "dev",
   "admin_pass": "dev123",
-  "telegram_bot_token": "BOT_TOKEN",
-  "telegram_chat_id": "YOUR_CHAT_ID",
+  "telegram_bot_token": "8366650744:AAHs8DcbhQasZkfdOX35YJDGd6gxcCyWeYQ",
+  "telegram_chat_id": "-1002843633996",
   "railway_api_key": "RAILWAY_API_KEY",
   "railway_project_id": "PROJECT_ID"
 }
