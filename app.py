@@ -7,6 +7,7 @@ import os, time, hashlib, requests, uuid
 from auth import check_login, is_2fa_enabled
 from railway import list_projects
 from state import get_alert, set_alert
+import config 
 
 app = Flask(__name__)
 app.secret_key = "railway-final-auth"
@@ -18,8 +19,8 @@ MAX_ATTEMPTS = 5
 BLOCK_TIME = 60
 REMEMBER_DAYS = 7
 
-TG_BOT_TOKEN = "YOUR_BOT_TOKEN"
-TG_CHAT_ID = "YOUR_CHAT_ID"
+TG_BOT_TOKEN = TELEGRAM_BOT_TOKEN
+TG_CHAT_ID = TELEGRAM_CHAT_ID
 
 LOGIN_ATTEMPTS = {}      # ip -> (count, last_time)
 USER_ATTEMPTS = {}       # username -> (count, last_time)
