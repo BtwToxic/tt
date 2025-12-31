@@ -12,6 +12,9 @@ from state import (
     verify_otp
 )
 
+# =========================
+# EXISTING LOGIN
+# =========================
 def check_login(u, p):
     if u != ADMIN_USER:
         set_alert("❌ Invalid username")
@@ -24,6 +27,21 @@ def check_login(u, p):
     set_alert("✅ Login successful")
     return True
 
+
+# =========================
+# 🔐 2FA FLAG (ADDED)
+# =========================
+def is_2fa_enabled(username):
+    """
+    Enable / disable 2FA per user.
+    Currently only ADMIN_USER has 2FA.
+    """
+    return username == ADMIN_USER
+
+
+# =========================
+# OTP GENERATION (RESET)
+# =========================
 def generate_code():
     code = str(random.randint(100000, 999999))
     set_otp(code)
@@ -48,7 +66,10 @@ Time: {time.ctime()}
         try:
             requests.post(
                 f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
-                data={"chat_id": TELEGRAM_CHAT_ID, "text": msg},
+                data={
+                    "chat_id": TELEGRAM_CHAT_ID,
+                    "text": msg
+                },
                 timeout=5
             )
         except Exception as e:
@@ -56,6 +77,10 @@ Time: {time.ctime()}
 
     set_alert("📩 OTP sent to Telegram (valid 10 min)")
 
+
+# =========================
+# PASSWORD RESET
+# =========================
 def reset_password(code, new_pass):
     ok, msg = verify_otp(code)
     if not ok:
