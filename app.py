@@ -1,64 +1,43 @@
-from flask import Flask, render_template, request, redirect
-from flask_login import LoginManager, login_user, login_required, logout_user, UserMixin
-from dotenv import load_dotenv
-import os
-
-from railway import list_services, start_service, stop_service, redeploy
-
-load_dotenv()
+from flask import Flask, render_template, request, redirect, session
+from auth import check_login, generate_code, verify_code, set_new_password
+from railway import list_services
 
 app = Flask(__name__)
-app.secret_key = "railway-admin-panel"
+app.secret_key = "simple-secret"
 
-login = LoginManager(app)
-login.login_view = "login"
-
-ADMIN_USER = "dev
-ADMIN_PASS = "dev@123"
-PROJECT_ID = os.getenv("ID")
-
-class Admin(UserMixin):
-    id = 1
-
-@login.user_loader
-def load_user(uid):
-    return Admin()
-
-@app.route("/admin", methods=["GET","POST"])
-def login_page():
+@app.route("/", methods=["GET","POST"])
+def login():
     if request.method == "POST":
-        if (
-            request.form["username"] == ADMIN_USER and
-            request.form["password"] == ADMIN_PASS
-        ):
-            login_user(Admin())
-            return redirect("/admin/dashboard")
+        if check_login(request.form["user"], request.form["pass"]):
+            session["admin"] = True
+            return redirect("/dashboard")
     return render_template("login.html")
 
-@app.route("/admin/dashboard")
-@login_required
+@app.route("/dashboard")
 def dashboard():
-    data = list_services(PROJECT_ID)
-    services = data["data"]["project"]["services"]["edges"]
+    if not session.get("admin"):
+        return redirect("/")
+    services = list_services()
     return render_template("dashboard.html", services=services)
 
-@app.route("/admin/action", methods=["POST"])
-@login_required
-def action():
-    sid = request.form["service_id"]
-    act = request.form["action"]
-
-    if act == "start":
-        start_service(sid)
-    elif act == "stop":
-        stop_service(sid)
-    elif act == "redeploy":
-        redeploy(sid)
-
-    return redirect("/admin/dashboard")
-
 @app.route("/logout")
-@login_required
 def logout():
-    logout_user()
-    return redirect("/admin")
+    session.clear()
+    return redirect("/")
+
+@app.route("/forgot", methods=["GET","POST"])
+def forgot():
+    if request.method == "POST":
+        generate_code()
+        return redirect("/reset")
+    return render_template("forgot.html")
+
+@app.route("/reset", methods=["GET","POST"])
+def reset():
+    if request.method == "POST":
+        if verify_code(request.form["code"]):
+            set_new_password(request.form["newpass"])
+            return redirect("/")
+    return render_template("reset.html")
+
+app.run(host="0.0.0.0", port=5000)
