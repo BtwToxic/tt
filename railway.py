@@ -1,7 +1,7 @@
 import requests
 from config import RAILWAY_API_KEY
 
-API = "https://backboard.railway.app/graphql"
+API = "https://backboard.railway.com/graphql/v2"
 
 HEADERS = {
     "Authorization": f"Bearer {RAILWAY_API_KEY}",
