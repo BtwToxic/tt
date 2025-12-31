@@ -1,20 +1,48 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
 
-  <!-- 🔥 MOST IMPORTANT FOR MOBILE -->
+  <!-- mobile scaling -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- CSS (cache busting added) -->
   <link rel="stylesheet" href="/static/style.css?v=2">
-
   <title>Toxic Login</title>
+
+  <!-- small inline animation (CSS file untouched) -->
+  <style>
+    .card.success {
+      animation: successPulse 0.6s ease;
+      border-color: rgba(34,197,94,0.6);
+      box-shadow: 0 0 30px rgba(34,197,94,0.6);
+    }
+
+    @keyframes successPulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1); }
+    }
+
+    .remember {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      margin: 6px 0 12px;
+      color: #cbd5f5;
+    }
+
+    .remember input {
+      width: auto;
+      margin: 0;
+    }
+  </style>
 </head>
 <body>
 
   <div class="card">
-    <h2>Toxic Login</h2>
+    <h2>Admin Login</h2>
 
     {% if alert %}
       <div class="alert">{{ alert }}</div>
@@ -23,23 +51,51 @@
     <form method="post">
       <input name="user" placeholder="Username" required>
       <input name="pass" type="password" placeholder="Password" required>
+
+      <!-- ✅ REMEMBER ME -->
+      <label class="remember">
+        <input type="checkbox" name="remember">
+        Remember me
+      </label>
+
       <button type="submit">Login</button>
     </form>
 
     <a href="/forgot">Forgot password?</a>
   </div>
 
-  <!-- ✅ LOADING + SHAKE TRIGGER -->
+  <!-- ✅ LOGIC -->
   <script>
     const form = document.querySelector("form");
     const button = document.querySelector("button");
     const card = document.querySelector(".card");
 
+    // Spinner on submit
     form.addEventListener("submit", () => {
       button.classList.add("loading");
+
+      // 🔥 AUTO TIMEOUT (failsafe)
+      setTimeout(() => {
+        button.classList.remove("loading");
+      }, 6000);
     });
 
-    {% if alert %}
+    // Back / cache fix
+    window.addEventListener("pageshow", function (event) {
+      if (event.persisted) {
+        button.classList.remove("loading");
+      }
+    });
+
+    // Success animation (alert contains success)
+    {% if alert and "Login successful" in alert %}
+      button.classList.remove("loading");
+      card.classList.add("success");
+    {% endif %}
+
+    // Error shake
+    {% if alert and "Wrong" in alert %}
+      button.classList.remove("loading");
       card.classList.add("shake");
       setTimeout(() => card.classList.remove("shake"), 400);
     {% endif %}
