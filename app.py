@@ -18,7 +18,12 @@ def login():
             request.form.get("pass")
         ):
             session["admin"] = True
+            set_alert("✅ Login successful")
             return redirect("/projects")
+        else:
+            # 🔥 YE LINE MISSING THI
+            set_alert("❌ Wrong username or password")
+            return redirect("/")
 
     return render_template("login.html", alert=alert)
 
@@ -34,17 +39,23 @@ def projects():
 def forgot():
     if request.method == "POST":
         generate_code()
+        set_alert("📩 OTP sent successfully")
         return redirect("/reset")
     return render_template("forgot.html", alert=get_alert())
 
 @app.route("/reset", methods=["GET", "POST"])
 def reset():
     if request.method == "POST":
-        reset_password(
+        if reset_password(
             request.form.get("code"),
             request.form.get("newpass")
-        )
-        return redirect("/")
+        ):
+            set_alert("🔐 Password reset successful")
+            return redirect("/")
+        else:
+            set_alert("❌ Invalid or expired code")
+            return redirect("/reset")
+
     return render_template("reset.html", alert=get_alert())
 
 @app.route("/logout")
