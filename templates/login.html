@@ -1,29 +1,14 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-
-  <!-- mobile scaling -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link rel="stylesheet" href="/static/style.css?v=2">
-  <title>Toxic Login</title>
+  <title>Admin Login</title>
 
-  <!-- small inline animation (CSS file untouched) -->
+  <!-- tiny inline css (style.css untouched) -->
   <style>
-    .card.success {
-      animation: successPulse 0.6s ease;
-      border-color: rgba(34,197,94,0.6);
-      box-shadow: 0 0 30px rgba(34,197,94,0.6);
-    }
-
-    @keyframes successPulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.03); }
-      100% { transform: scale(1); }
-    }
-
     .remember {
       display: flex;
       align-items: center;
@@ -32,10 +17,21 @@
       margin: 6px 0 12px;
       color: #cbd5f5;
     }
+    .remember input { width: auto; margin: 0; }
 
-    .remember input {
-      width: auto;
-      margin: 0;
+    /* spinner text */
+    button.loading span {
+      visibility: hidden;
+    }
+    button.loading::after {
+      content: "Signing in…";
+      position: absolute;
+      bottom: -26px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 13px;
+      color: #93c5fd;
+      font-weight: 600;
     }
   </style>
 </head>
@@ -52,50 +48,44 @@
       <input name="user" placeholder="Username" required>
       <input name="pass" type="password" placeholder="Password" required>
 
-      <!-- ✅ REMEMBER ME -->
       <label class="remember">
         <input type="checkbox" name="remember">
         Remember me
       </label>
 
-      <button type="submit">Login</button>
+      <button type="submit">
+        <span>Login</span>
+      </button>
     </form>
 
     <a href="/forgot">Forgot password?</a>
   </div>
 
-  <!-- ✅ LOGIC -->
+  <!-- ================= JS ================= -->
   <script>
     const form = document.querySelector("form");
     const button = document.querySelector("button");
     const card = document.querySelector(".card");
+    const inputs = document.querySelectorAll("input");
 
-    // Spinner on submit
+    // submit → spinner + disable inputs
     form.addEventListener("submit", () => {
       button.classList.add("loading");
-
-      // 🔥 AUTO TIMEOUT (failsafe)
-      setTimeout(() => {
-        button.classList.remove("loading");
-      }, 6000);
+      inputs.forEach(i => i.disabled = true);
     });
 
-    // Back / cache fix
-    window.addEventListener("pageshow", function (event) {
-      if (event.persisted) {
+    // back button / cache fix
+    window.addEventListener("pageshow", e => {
+      if (e.persisted) {
         button.classList.remove("loading");
+        inputs.forEach(i => i.disabled = false);
       }
     });
 
-    // Success animation (alert contains success)
-    {% if alert and "Login successful" in alert %}
-      button.classList.remove("loading");
-      card.classList.add("success");
-    {% endif %}
-
-    // Error shake
+    // wrong login → stop spinner + shake
     {% if alert and "Wrong" in alert %}
       button.classList.remove("loading");
+      inputs.forEach(i => i.disabled = false);
       card.classList.add("shake");
       setTimeout(() => card.classList.remove("shake"), 400);
     {% endif %}
