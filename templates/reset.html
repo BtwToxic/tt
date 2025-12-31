@@ -1,15 +1,29 @@
-<link rel="stylesheet" href="/static/style.css">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reset Password</title>
 
-<div class="card">
-  <h2>Reset Password</h2>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
 
-  {% if alert %}
-    <div class="alert">{{ alert }}</div>
-  {% endif %}
+  <div class="card">
+    <h2>Reset Password</h2>
 
-  <form method="post">
-    <input name="code" placeholder="OTP (6 digit)">
-    <input name="newpass" placeholder="New password">
-    <button>Reset</button>
-  </form>
-</div>
+    {% if alert %}
+      <div class="alert">{{ alert }}</div>
+    {% endif %}
+
+    <form method="post">
+      <input name="code" placeholder="OTP (6 digit)" required>
+      <input name="newpass" type="password" placeholder="New password" required>
+      <button type="submit">Reset</button>
+    </form>
+
+    <a href="/">Back to login</a>
+  </div>
+
+</body>
+</html>
