@@ -1,7 +1,7 @@
 import requests
 from config import RAILWAY_API_KEY
 
-API = "https://backboard.railway.com/graphql/v2"
+API = "https://backboard.railway.app/graphql/v2"
 
 HEADERS = {
     "Authorization": f"Bearer {RAILWAY_API_KEY}",
@@ -9,9 +9,6 @@ HEADERS = {
 }
 
 def gql(query, variables=None):
-    if not RAILWAY_API_KEY:
-        return {}
-
     try:
         r = requests.post(
             API,
@@ -24,24 +21,13 @@ def gql(query, variables=None):
         print("Railway API error:", e)
         return {}
 
-# 🔹 ALL PROJECTS
+# 🔹 PROJECTS
 def list_projects():
-    q = """
-    {
-      projects {
-        edges {
-          node {
-            id
-            name
-          }
-        }
-      }
-    }
-    """
+    q = """{ projects { edges { node { id name }}}}"""
     data = gql(q)
     return data.get("data", {}).get("projects", {}).get("edges", [])
 
-# 🔹 SERVICES OF A PROJECT
+# 🔹 SERVICES (FILTER DELETED)
 def list_services(project_id):
     q = """
     query ($id: ID!) {
@@ -51,6 +37,13 @@ def list_services(project_id):
             node {
               id
               name
+              deployments(last:1) {
+                edges {
+                  node {
+                    status
+                  }
+                }
+              }
             }
           }
         }
@@ -58,30 +51,53 @@ def list_services(project_id):
     }
     """
     data = gql(q, {"id": project_id})
-    return (
+    services = (
         data.get("data", {})
         .get("project", {})
         .get("services", {})
         .get("edges", [])
     )
 
-# 🔹 ACTIONS
-def scale(service_id, replicas):
-    q = """
-    mutation ($id: ID!, $r: Int!) {
-      serviceScale(serviceId: $id, replicas: $r) {
-        id
-      }
-    }
-    """
-    gql(q, {"id": service_id, "r": replicas})
+    # filter deleted / broken
+    clean = []
+    for s in services:
+        if s.get("node") and s["node"].get("name"):
+            clean.append(s)
+    return clean
 
-def redeploy(service_id):
+# 🔹 LOGS
+def service_logs(service_id):
     q = """
-    mutation ($id: ID!) {
-      serviceRedeploy(serviceId: $id) {
-        id
+    query ($id: ID!) {
+      service(id: $id) {
+        logs(limit: 100)
       }
     }
     """
-    gql(q, {"id": service_id})
+    data = gql(q, {"id": service_id})
+    return data.get("data", {}).get("service", {}).get("logs", [])
+
+# 🔹 METRICS
+def service_metrics(service_id):
+    q = """
+    query ($id: ID!) {
+      service(id: $id) {
+        metrics {
+          cpu
+          memory
+        }
+      }
+    }
+    """
+    data = gql(q, {"id": service_id})
+    return data.get("data", {}).get("service", {}).get("metrics", {})
+
+# 🔹 CONTROLS
+def start_service(service_id):
+    gql("""mutation($id:ID!){serviceScale(serviceId:$id,replicas:1){id}}""", {"id": service_id})
+
+def stop_service(service_id):
+    gql("""mutation($id:ID!){serviceScale(serviceId:$id,replicas:0){id}}""", {"id": service_id})
+
+def restart_service(service_id):
+    gql("""mutation($id:ID!){serviceRedeploy(serviceId:$id){id}}""", {"id": service_id})
