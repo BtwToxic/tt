@@ -8,16 +8,20 @@ OTP_CODE = None
 OTP_TIME = None
 OTP_VALID_SECONDS = 600  # 10 minutes
 
+
 def set_password(p):
     global ADMIN_PASSWORD
     ADMIN_PASSWORD = p
 
+
 def get_password():
     return ADMIN_PASSWORD
+
 
 def set_alert(msg):
     global LAST_ALERT
     LAST_ALERT = msg
+
 
 def get_alert():
     global LAST_ALERT
@@ -25,10 +29,12 @@ def get_alert():
     LAST_ALERT = None
     return msg
 
+
 def set_otp(code):
     global OTP_CODE, OTP_TIME
     OTP_CODE = code
     OTP_TIME = time.time()
+
 
 def verify_otp(code):
     global OTP_CODE, OTP_TIME
@@ -48,7 +54,11 @@ def verify_otp(code):
     OTP_TIME = None
     return True, "✅ OTP verified"
 
-    def get_otp_expiry():
+
+# =========================
+# ✅ OTP EXPIRY (ADDED ONLY)
+# =========================
+def get_otp_expiry():
     if not OTP_TIME:
         return 0
 
