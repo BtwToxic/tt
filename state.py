@@ -47,3 +47,10 @@ def verify_otp(code):
     OTP_CODE = None
     OTP_TIME = None
     return True, "✅ OTP verified"
+
+    def get_otp_expiry():
+    if not OTP_TIME:
+        return 0
+
+    remaining = OTP_VALID_SECONDS - int(time.time() - OTP_TIME)
+    return max(0, remaining)
