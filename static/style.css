@@ -2,58 +2,68 @@
   box-sizing: border-box;
 }
 
+/* =============================
+   BODY + MOVING GRADIENT
+============================= */
+html, body {
+  width: 100%;
+  height: 100%;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
   font-family: "Inter", system-ui, sans-serif;
-  background: radial-gradient(circle at top, #1e293b, #020617);
   color: #e5e7eb;
+
+  /* IMPORTANT: animated background (mobile-safe) */
+  background: linear-gradient(
+    -45deg,
+    #020617,
+    #0f172a,
+    #1e293b,
+    #020617
+  );
+  background-size: 300% 300%;
+  animation: gradientMove 18s ease infinite;
+
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 16px;
-  overflow: hidden;
 }
 
-/* ===== BACKGROUND SLOW MOVING GRADIENT ===== */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background:
-    radial-gradient(circle at 20% 20%, rgba(99,102,241,0.18), transparent 40%),
-    radial-gradient(circle at 80% 80%, rgba(56,189,248,0.18), transparent 40%);
-  animation: bgMove 14s ease-in-out infinite alternate;
-  z-index: -1;
+/* Background animation */
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
-@keyframes bgMove {
-  from {
-    transform: translateY(-20px);
-  }
-  to {
-    transform: translateY(20px);
-  }
-}
-
-/* ===== CARD ===== */
+/* =============================
+   CARD
+============================= */
 .card {
   width: 100%;
   max-width: 420px;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(18px);
-  border-radius: 16px;
-  padding: 28px;
-  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 18px;
+  padding: 32px 26px;
+  border: 1px solid rgba(255,255,255,0.15);
+
   box-shadow:
-    0 25px 70px rgba(0,0,0,0.6),
-    inset 0 1px 1px rgba(255,255,255,0.15);
-  animation: pop 0.4s ease;
+    0 30px 80px rgba(0,0,0,0.65),
+    inset 0 1px 1px rgba(255,255,255,0.12);
+
+  animation: cardIn 0.45s ease;
 }
 
-@keyframes pop {
+/* Card entry */
+@keyframes cardIn {
   from {
-    transform: scale(0.95);
+    transform: scale(0.94);
     opacity: 0;
   }
   to {
@@ -62,20 +72,24 @@ body::before {
   }
 }
 
-/* ===== SHAKE (WRONG PASSWORD) ===== */
+/* =============================
+   SHAKE (WRONG PASSWORD)
+============================= */
 .card.shake {
   animation: shake 0.35s;
 }
 
 @keyframes shake {
-  0%   { transform: translateX(0); }
-  25%  { transform: translateX(-6px); }
-  50%  { transform: translateX(6px); }
-  75%  { transform: translateX(-4px); }
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  50% { transform: translateX(6px); }
+  75% { transform: translateX(-4px); }
   100% { transform: translateX(0); }
 }
 
-/* ===== HEADING ===== */
+/* =============================
+   HEADING
+============================= */
 h2 {
   text-align: center;
   margin-bottom: 20px;
@@ -84,15 +98,17 @@ h2 {
   font-size: 22px;
 }
 
-/* ===== INPUT ===== */
+/* =============================
+   INPUTS
+============================= */
 input {
   width: 100%;
   padding: 14px 16px;
   margin-bottom: 14px;
-  border-radius: 10px;
+  border-radius: 12px;
   border: none;
   outline: none;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.14);
   color: white;
   font-size: 15px;
 }
@@ -101,7 +117,9 @@ input::placeholder {
   color: #9ca3af;
 }
 
-/* ===== BUTTON + NEON GLOW ===== */
+/* =============================
+   BUTTON + NEON GLOW
+============================= */
 button {
   width: 100%;
   padding: 14px;
@@ -113,20 +131,17 @@ button {
   cursor: pointer;
   position: relative;
   overflow: hidden;
+
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
+/* Neon glow */
 button::after {
   content: "";
   position: absolute;
-  inset: -2px;
-  background: linear-gradient(
-    120deg,
-    #38bdf8,
-    #6366f1,
-    #38bdf8
-  );
-  filter: blur(18px);
+  inset: -3px;
+  background: linear-gradient(120deg, #38bdf8, #6366f1, #38bdf8);
+  filter: blur(22px);
   opacity: 0;
   transition: opacity 0.25s ease;
   z-index: -1;
@@ -134,14 +149,16 @@ button::after {
 
 button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 10px 30px rgba(56, 189, 248, 0.5);
+  box-shadow: 0 12px 35px rgba(56,189,248,0.55);
 }
 
 button:hover::after {
   opacity: 1;
 }
 
-/* ===== BUTTON LOADING SPINNER ===== */
+/* =============================
+   BUTTON LOADING SPINNER
+============================= */
 button.loading {
   pointer-events: none;
   color: transparent;
@@ -152,7 +169,7 @@ button.loading::before {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  border: 3px solid rgba(0,0,0,0.25);
+  border: 3px solid rgba(255,255,255,0.4);
   border-top-color: black;
   position: absolute;
   top: 50%;
@@ -167,7 +184,9 @@ button.loading::before {
   }
 }
 
-/* ===== LINKS ===== */
+/* =============================
+   LINKS
+============================= */
 a {
   display: block;
   text-align: center;
@@ -181,19 +200,30 @@ a:hover {
   text-decoration: underline;
 }
 
-/* ===== ALERT ===== */
+/* =============================
+   ALERT (ERROR)
+============================= */
 .alert {
-  background: rgba(239,68,68,0.2);
-  border: 1px solid rgba(239,68,68,0.35);
+  background: rgba(239,68,68,0.22);
+  border: 1px solid rgba(239,68,68,0.4);
   padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 10px;
+  border-radius: 10px;
+  margin-bottom: 12px;
   text-align: center;
   font-weight: 600;
   backdrop-filter: blur(10px);
 }
 
-/* ===== SMALL HEIGHT FIX ===== */
+/* =============================
+   SMALL SCREEN FIX
+============================= */
+@media (max-width: 480px) {
+  .card {
+    max-width: 92%;
+    padding: 34px 24px;
+  }
+}
+
 @media (max-height: 600px) {
   body {
     align-items: flex-start;
