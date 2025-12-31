@@ -1,17 +1,49 @@
-<link rel="stylesheet" href="/static/style.css">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
 
-<div class="card">
-  <h2>Toxic Login</h2>
+  <!-- 🔥 MOST IMPORTANT FOR MOBILE -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  {% if alert %}
-    <div class="alert">{{ alert }}</div>
-  {% endif %}
+  <!-- CSS (cache busting added) -->
+  <link rel="stylesheet" href="/static/style.css?v=2">
 
-  <form method="post">
-    <input name="user" placeholder="Username">
-    <input name="pass" type="password" placeholder="Password">
-    <button>Login</button>
-  </form>
+  <title>Toxic Login</title>
+</head>
+<body>
 
-  <a href="/forgot">Forgot password?</a>
-</div>
+  <div class="card">
+    <h2>Toxic Login</h2>
+
+    {% if alert %}
+      <div class="alert">{{ alert }}</div>
+    {% endif %}
+
+    <form method="post">
+      <input name="user" placeholder="Username" required>
+      <input name="pass" type="password" placeholder="Password" required>
+      <button type="submit">Login</button>
+    </form>
+
+    <a href="/forgot">Forgot password?</a>
+  </div>
+
+  <!-- ✅ LOADING + SHAKE TRIGGER -->
+  <script>
+    const form = document.querySelector("form");
+    const button = document.querySelector("button");
+    const card = document.querySelector(".card");
+
+    form.addEventListener("submit", () => {
+      button.classList.add("loading");
+    });
+
+    {% if alert %}
+      card.classList.add("shake");
+      setTimeout(() => card.classList.remove("shake"), 400);
+    {% endif %}
+  </script>
+
+</body>
+</html>
