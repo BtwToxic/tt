@@ -1,10 +1,15 @@
 <link rel="stylesheet" href="/static/style.css">
 
 <div class="card">
-  <h2>Set New Password</h2>
+  <h2>Reset Password</h2>
+
+  {% if alert %}
+    <div class="alert">{{ alert }}</div>
+  {% endif %}
+
   <form method="post">
-    <input name="code" placeholder="6-digit code">
+    <input name="code" placeholder="OTP (6 digit)">
     <input name="newpass" placeholder="New password">
-    <button>Update Password</button>
+    <button>Reset</button>
   </form>
 </div>
