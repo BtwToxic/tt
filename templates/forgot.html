@@ -1,8 +1,27 @@
-<link rel="stylesheet" href="/static/style.css">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reset Password</title>
 
-<div class="card">
-  <h2>Reset Password</h2>
-  <form method="post">
-    <button>Send code to Telegram</button>
-  </form>
-</div>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <div class="card">
+    <h2>Reset Password</h2>
+
+    {% if alert %}
+      <div class="alert">{{ alert }}</div>
+    {% endif %}
+
+    <form method="post">
+      <button type="submit">Send Otp</button>
+    </form>
+
+    <a href="/">Back to login</a>
+  </div>
+
+</body>
+</html>
