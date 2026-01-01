@@ -1,30 +1,19 @@
 import json
-import os
 import time
+import os
 
-# 🔥 Railway-safe writable path
-DATA_FILE = "/tmp/data.json"
-
-# ✅ DEFAULT LOGIN (FIRST TIME)
-DEFAULT_DATA = {
-    "username": "dev",
-    "password": "123"
-}
+DATA_FILE = "data.json"
 
 LAST_ALERT = None
-
 OTP_CODE = None
 OTP_TIME = None
-OTP_VALID_SECONDS = 600  # 10 min
+OTP_VALID_SECONDS = 600  # 10 minutes
 
 
-# =========================
-# INTERNAL HELPERS
-# =========================
 def _load():
     if not os.path.exists(DATA_FILE):
         with open(DATA_FILE, "w") as f:
-            json.dump(DEFAULT_DATA, f)
+            json.dump({"username": "dev", "password": "123"}, f)
 
     with open(DATA_FILE, "r") as f:
         return json.load(f)
@@ -35,26 +24,26 @@ def _save(data):
         json.dump(data, f)
 
 
-# =========================
-# AUTH DATA
-# =========================
+# =====================
+# AUTH
+# =====================
 def get_username():
-    return _load()["username"]
+    return _load().get("username")
 
 
 def get_password():
-    return _load()["password"]
+    return _load().get("password")
 
 
-def set_password(new_pass):
+def set_password(p):
     data = _load()
-    data["password"] = new_pass
+    data["password"] = p
     _save(data)
 
 
-# =========================
-# ALERT SYSTEM
-# =========================
+# =====================
+# ALERT
+# =====================
 def set_alert(msg):
     global LAST_ALERT
     LAST_ALERT = msg
@@ -67,9 +56,9 @@ def get_alert():
     return msg
 
 
-# =========================
-# OTP SYSTEM
-# =========================
+# =====================
+# OTP
+# =====================
 def set_otp(code):
     global OTP_CODE, OTP_TIME
     OTP_CODE = code
@@ -79,19 +68,17 @@ def set_otp(code):
 def verify_otp(code):
     global OTP_CODE, OTP_TIME
 
-    if not OTP_CODE or not OTP_TIME:
+    if not OTP_CODE:
         return False, "❌ No OTP requested"
 
     if time.time() - OTP_TIME > OTP_VALID_SECONDS:
         OTP_CODE = None
-        OTP_TIME = None
-        return False, "⏰ OTP expired (10 min)"
+        return False, "⏰ OTP expired"
 
     if code != OTP_CODE:
         return False, "❌ Invalid OTP"
 
     OTP_CODE = None
-    OTP_TIME = None
     return True, "✅ OTP verified"
 
 
