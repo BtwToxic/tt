@@ -13,12 +13,15 @@ from state import (
     verify_otp
 )
 
-
+# =========================
+# LOGIN CHECK
+# =========================
 def check_login(u, p):
     real_user = get_username()
     real_pass = get_password()
 
-    print("LOGIN DEBUG:", real_user, real_pass)  # 👈 log me dikhega
+    # 🔍 DEBUG (Railway logs me dikhega)
+    print("LOGIN DEBUG:", u, p, real_user, real_pass)
 
     if u != real_user:
         set_alert("❌ Invalid username")
@@ -32,22 +35,48 @@ def check_login(u, p):
     return True
 
 
+# =========================
+# OTP GENERATION (RESET)
+# =========================
 def generate_code():
     code = str(random.randint(100000, 999999))
     set_otp(code)
 
-    msg = f"OTP: {code}\nValid: 10 minutes"
+    ip = request.remote_addr or "unknown"
+    ua = request.headers.get("User-Agent", "unknown")
+
+    msg = f"""
+🔐 TOXIC PASSWORD RESET REQUEST
+
+OTP: {code}
+Valid: 10 minutes
+
+IP: {ip}
+Device:
+{ua}
+
+Time: {time.ctime()}
+"""
 
     if TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID:
-        requests.post(
-            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
-            data={"chat_id": TELEGRAM_CHAT_ID, "text": msg},
-            timeout=5
-        )
+        try:
+            requests.post(
+                f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+                data={
+                    "chat_id": TELEGRAM_CHAT_ID,
+                    "text": msg
+                },
+                timeout=5
+            )
+        except Exception as e:
+            print("Telegram error:", e)
 
-    set_alert("📩 OTP sent to Telegram")
+    set_alert("📩 OTP sent to Telegram (valid 10 min)")
 
 
+# =========================
+# PASSWORD RESET
+# =========================
 def reset_password(code, new_pass):
     ok, msg = verify_otp(code)
     if not ok:
