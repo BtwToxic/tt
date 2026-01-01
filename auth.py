@@ -15,11 +15,16 @@ from state import (
 
 
 def check_login(u, p):
-    if u != get_username():
+    real_user = get_username()
+    real_pass = get_password()
+
+    print("LOGIN DEBUG:", real_user, real_pass)  # 👈 log me dikhega
+
+    if u != real_user:
         set_alert("❌ Invalid username")
         return False
 
-    if p != get_password():
+    if p != real_pass:
         set_alert("❌ Wrong password")
         return False
 
@@ -31,14 +36,7 @@ def generate_code():
     code = str(random.randint(100000, 999999))
     set_otp(code)
 
-    msg = f"""
-🔐 PASSWORD RESET
-
-OTP: {code}
-Valid: 10 minutes
-IP: {request.remote_addr}
-Time: {time.ctime()}
-"""
+    msg = f"OTP: {code}\nValid: 10 minutes"
 
     if TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID:
         requests.post(
