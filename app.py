@@ -37,11 +37,11 @@ def protect():
 def login():
     blocked, sec = is_blocked()
     if blocked:
-        return render_template("login.html", alert=f"🚫 You are blocked for {sec}s")
+        return render_template("login.html", alert=f"🚫 Blocked {sec}s")
 
     if request.method == "POST":
         u = (request.form.get("user") or "").strip()
-        p = (request.form.get("password") or "").strip()  # 🔥 FIX
+        p = (request.form.get("pass") or "").strip()
 
         ok = check_login(u, p)
         alert = get_alert()
@@ -49,20 +49,12 @@ def login():
         if ok:
             session["admin"] = True
             session.pop("attempts", None)
-            session.pop("blocked_until", None)
             return redirect("/projects")
 
         session["attempts"] = session.get("attempts", 0) + 1
-        left = MAX_LOGIN_ATTEMPTS - session["attempts"]
-
-        if left <= 0:
+        if session["attempts"] >= MAX_LOGIN_ATTEMPTS:
             session["blocked_until"] = time.time() + BLOCK_TIME
-            alert = f"🚫 You are blocked for {BLOCK_TIME}s"
-        else:
-            if alert:
-                alert = f"{alert} · {left} attempts left"
-            else:
-                alert = f"❌ Wrong credentials ({left} attempts left)"
+            alert = f"🚫 Blocked {BLOCK_TIME}s"
 
         return render_template("login.html", alert=alert)
 
@@ -74,14 +66,9 @@ def projects():
     if not session.get("admin"):
         return redirect("/")
 
-    try:
-        projects = list_projects() or []
-    except Exception:
-        projects = []
-
     return render_template(
         "projects.html",
-        projects=projects,
+        projects=list_projects(),
         alert=get_alert()
     )
 
