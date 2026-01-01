@@ -5,7 +5,7 @@ from state import set_password
 #DEFAULT_PASS = os.environ.get("ADMIN_PASS", "dev123")
 
 # set initial password at boot
-set_password(DEFAULT_PASS)
+#set_password(DEFAULT_PASS)
 
 TELEGRAM_BOT_TOKEN = "8366650744:AAH5lE8GWu1yiU95K2nNp46BmiTGptGpIC4"
 TELEGRAM_CHAT_ID = "-1002843633996"
