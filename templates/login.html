@@ -43,21 +43,8 @@
     {% endif %}
 
     <form method="post">
-      <input
-        name="user"
-        placeholder="Username"
-        autocomplete="off"
-        required
-      >
-
-      <!-- 🔥 FIXED PASSWORD FIELD -->
-      <input
-        name="password"
-        type="password"
-        placeholder="Password"
-        autocomplete="off"
-        required
-      >
+      <input name="user" placeholder="Username" required>
+      <input name="pass" type="password" placeholder="Password" required>
 
       <label class="remember">
         <input type="checkbox" name="remember">
@@ -78,11 +65,13 @@
     const card = document.querySelector(".card");
     const inputs = document.querySelectorAll("input");
 
+    // submit → spinner
     form.addEventListener("submit", () => {
       button.classList.add("loading");
       inputs.forEach(i => i.disabled = true);
     });
 
+    // back / cache fix
     window.addEventListener("pageshow", e => {
       if (e.persisted) {
         button.classList.remove("loading");
@@ -90,7 +79,8 @@
       }
     });
 
-    {% if alert and "Wrong" in alert or "Invalid" in alert %}
+    // ❗ FIXED CONDITION (NO CRASH)
+    {% if alert and ("Wrong" in alert or "Invalid" in alert) %}
       button.classList.remove("loading");
       inputs.forEach(i => i.disabled = false);
       card.classList.add("shake");
