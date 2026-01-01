@@ -1,8 +1,8 @@
 import json
-import time
 import os
+import time
 
-DATA_FILE = "data.json"
+DATA_FILE = os.path.join(os.path.dirname(__file__), "data.json")
 
 LAST_ALERT = None
 OTP_CODE = None
@@ -10,53 +10,40 @@ OTP_TIME = None
 OTP_VALID_SECONDS = 600
 
 
-# =========================
-# INIT JSON
-# =========================
-def _init():
+# -------------------------
+# DATA LOAD / SAVE
+# -------------------------
+def _load():
     if not os.path.exists(DATA_FILE):
         with open(DATA_FILE, "w") as f:
-            json.dump(
-                {
-                    "username": "dev",
-                    "password": "123"
-                },
-                f
-            )
+            json.dump({"username": "dev", "password": "123"}, f)
 
-_init()
-
-
-def _read():
     with open(DATA_FILE, "r") as f:
         return json.load(f)
 
 
-def _write(data):
+def _save(data):
     with open(DATA_FILE, "w") as f:
-        json.dump(data, f, indent=2)
+        json.dump(data, f)
 
 
-# =========================
-# USER / PASS
-# =========================
 def get_username():
-    return _read()["username"]
+    return _load().get("username")
 
 
 def get_password():
-    return _read()["password"]
+    return _load().get("password")
 
 
 def set_password(p):
-    data = _read()
+    data = _load()
     data["password"] = p
-    _write(data)
+    _save(data)
 
 
-# =========================
-# ALERTS
-# =========================
+# -------------------------
+# ALERT
+# -------------------------
 def set_alert(msg):
     global LAST_ALERT
     LAST_ALERT = msg
@@ -69,9 +56,9 @@ def get_alert():
     return msg
 
 
-# =========================
+# -------------------------
 # OTP
-# =========================
+# -------------------------
 def set_otp(code):
     global OTP_CODE, OTP_TIME
     OTP_CODE = code
