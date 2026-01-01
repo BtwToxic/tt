@@ -3,18 +3,14 @@ import time
 import os
 
 DATA_FILE = "data.json"
+LAST_ALERT = ""
 
-LAST_ALERT = None
 OTP_CODE = None
 OTP_TIME = None
-OTP_VALID_SECONDS = 600  # 10 minutes
+OTP_VALID_SECONDS = 600
 
 
 def _load():
-    if not os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "w") as f:
-            json.dump({"username": "dev", "password": "123"}, f)
-
     with open(DATA_FILE, "r") as f:
         return json.load(f)
 
@@ -24,15 +20,12 @@ def _save(data):
         json.dump(data, f)
 
 
-# =====================
-# AUTH
-# =====================
 def get_username():
-    return _load().get("username")
+    return _load()["username"]
 
 
 def get_password():
-    return _load().get("password")
+    return _load()["password"]
 
 
 def set_password(p):
@@ -41,24 +34,18 @@ def set_password(p):
     _save(data)
 
 
-# =====================
-# ALERT
-# =====================
 def set_alert(msg):
     global LAST_ALERT
-    LAST_ALERT = msg
+    LAST_ALERT = msg or ""
 
 
 def get_alert():
     global LAST_ALERT
     msg = LAST_ALERT
-    LAST_ALERT = None
+    LAST_ALERT = ""
     return msg
 
 
-# =====================
-# OTP
-# =====================
 def set_otp(code):
     global OTP_CODE, OTP_TIME
     OTP_CODE = code
