@@ -1,7 +1,10 @@
 # state.py
 import time
 
-ADMIN_PASSWORD = None
+# =========================
+# DEFAULT ADMIN PASSWORD
+# =========================
+ADMIN_PASSWORD = "123"   # 🔐 CHANGE THIS AFTER FIRST LOGIN
 LAST_ALERT = None
 
 OTP_CODE = None
@@ -56,7 +59,7 @@ def verify_otp(code):
 
 
 # =========================
-# ✅ OTP EXPIRY (ADDED ONLY)
+# OTP EXPIRY (FOR TIMER)
 # =========================
 def get_otp_expiry():
     if not OTP_TIME:
