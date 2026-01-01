@@ -1,12 +1,6 @@
 import os
 import time
-from flask import (
-    Flask,
-    render_template,
-    request,
-    redirect,
-    session
-)
+from flask import Flask, render_template, request, redirect, session
 
 from auth import check_login, generate_code, reset_password
 from railway import list_projects
@@ -19,10 +13,11 @@ app.secret_key = "railway-final-auth"
 # CONFIG
 # =========================
 MAX_LOGIN_ATTEMPTS = 3
-BLOCK_TIME = 10  # seconds
+BLOCK_TIME = 60  # seconds
+
 
 # =========================
-# HELPERS
+# BLOCK HELPER
 # =========================
 def is_blocked():
     blocked_until = session.get("blocked_until")
@@ -39,13 +34,13 @@ def is_blocked():
 
 
 # =========================
-# GLOBAL ROUTE PROTECTION
+# GLOBAL PROTECTION
 # =========================
 @app.before_request
 def protect_routes():
-    protected = ["/projects"]
+    protected_routes = ["/projects"]
 
-    if request.path in protected:
+    if request.path in protected_routes:
         if not session.get("admin"):
             return redirect("/")
 
@@ -55,9 +50,7 @@ def protect_routes():
 # =========================
 @app.route("/", methods=["GET", "POST"])
 def login():
-    alert = get_alert()
-
-    # ---- block check (LIVE TIMER SUPPORT) ----
+    # ---- BLOCK CHECK ----
     blocked, remaining = is_blocked()
     if blocked:
         set_alert(f"🚫 You are blocked for {remaining}s")
@@ -75,15 +68,21 @@ def login():
             session.pop("blocked_until", None)
             return redirect("/projects")
 
-        # ---- failed attempt ----
+        # ---- FAILED LOGIN ----
         session["attempts"] = session.get("attempts", 0) + 1
         left = MAX_LOGIN_ATTEMPTS - session["attempts"]
+
+        # ⚠️ IMPORTANT: existing alert ko overwrite NAHI karna
+        existing_alert = get_alert()
 
         if left <= 0:
             session["blocked_until"] = time.time() + BLOCK_TIME
             set_alert(f"🚫 You are blocked for {BLOCK_TIME}s")
         else:
-            set_alert(f"❌ Wrong credentials ({left} attempts left)")
+            if existing_alert:
+                set_alert(f"{existing_alert} · {left} attempts left")
+            else:
+                set_alert(f"❌ Wrong credentials ({left} attempts left)")
 
     return render_template("login.html", alert=get_alert())
 
@@ -96,7 +95,15 @@ def projects():
     if not session.get("admin"):
         return redirect("/")
 
-    projects = list_projects()
+    try:
+        projects = list_projects()
+        if not projects:
+            projects = []
+            set_alert("⚠️ Failed to load projects")
+    except Exception:
+        projects = []
+        set_alert("⚠️ Error loading projects")
+
     return render_template(
         "projects.html",
         projects=projects,
