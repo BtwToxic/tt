@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="/static/style.css?v=2">
   <title>Admin Login</title>
 
-  <!-- tiny inline css (style.css untouched) -->
   <style>
     .remember {
       display: flex;
@@ -19,7 +18,6 @@
     }
     .remember input { width: auto; margin: 0; }
 
-    /* spinner text */
     button.loading span {
       visibility: hidden;
     }
@@ -45,8 +43,21 @@
     {% endif %}
 
     <form method="post">
-      <input name="user" placeholder="Username" required>
-      <input name="pass" type="password" placeholder="Password" required>
+      <input
+        name="user"
+        placeholder="Username"
+        autocomplete="off"
+        required
+      >
+
+      <!-- 🔥 FIXED PASSWORD FIELD -->
+      <input
+        name="password"
+        type="password"
+        placeholder="Password"
+        autocomplete="off"
+        required
+      >
 
       <label class="remember">
         <input type="checkbox" name="remember">
@@ -61,20 +72,17 @@
     <a href="/forgot">Forgot password?</a>
   </div>
 
-  <!-- ================= JS ================= -->
   <script>
     const form = document.querySelector("form");
     const button = document.querySelector("button");
     const card = document.querySelector(".card");
     const inputs = document.querySelectorAll("input");
 
-    // submit → spinner + disable inputs
     form.addEventListener("submit", () => {
       button.classList.add("loading");
       inputs.forEach(i => i.disabled = true);
     });
 
-    // back button / cache fix
     window.addEventListener("pageshow", e => {
       if (e.persisted) {
         button.classList.remove("loading");
@@ -82,8 +90,7 @@
       }
     });
 
-    // wrong login → stop spinner + shake
-    {% if alert and "Wrong" in alert %}
+    {% if alert and "Wrong" in alert or "Invalid" in alert %}
       button.classList.remove("loading");
       inputs.forEach(i => i.disabled = false);
       card.classList.add("shake");
