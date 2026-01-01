@@ -1,7 +1,7 @@
 import os
 from state import set_password
 
-ADMIN_USER = os.environ.get("ADMIN_USER", "dev")
+ADMIN_USER = "dev"
 DEFAULT_PASS = os.environ.get("ADMIN_PASS", "dev123")
 
 # set initial password at boot
