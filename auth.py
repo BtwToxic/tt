@@ -1,34 +1,25 @@
+from state import get_username, get_password, set_alert, set_otp, verify_otp
 import random
 import time
 import requests
 from flask import request
-
 from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
-from state import (
-    get_username,
-    get_password,
-    set_password,
-    set_alert,
-    set_otp,
-    verify_otp
-)
 
 
 def check_login(u, p):
-    real_user = get_username()
-    real_pass = get_password()
+    u = (u or "").strip()
+    p = (p or "").strip()
 
-    if u != real_user:
+    if u != get_username():
         set_alert("❌ Invalid username")
         return False
 
-    if p != real_pass:
+    if p != get_password():
         set_alert("❌ Wrong password")
         return False
 
     set_alert("✅ Login successful")
     return True
-
 
 def generate_code():
     code = str(random.randint(100000, 999999))
