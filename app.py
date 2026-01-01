@@ -17,10 +17,13 @@ def is_blocked():
     until = session.get("blocked_until")
     if not until:
         return False, 0
+
     left = int(until - time.time())
     if left <= 0:
-        session.clear()
+        session.pop("blocked_until", None)
+        session.pop("attempts", None)
         return False, 0
+
     return True, left
 
 
@@ -34,11 +37,11 @@ def protect():
 def login():
     blocked, sec = is_blocked()
     if blocked:
-        return render_template("login.html", alert=f"🚫 Blocked {sec}s")
+        return render_template("login.html", alert=f"🚫 You are blocked for {sec}s")
 
     if request.method == "POST":
         u = (request.form.get("user") or "").strip()
-        p = (request.form.get("pass") or "").strip()
+        p = (request.form.get("password") or "").strip()  # 🔥 FIX
 
         ok = check_login(u, p)
         alert = get_alert()
@@ -46,12 +49,20 @@ def login():
         if ok:
             session["admin"] = True
             session.pop("attempts", None)
+            session.pop("blocked_until", None)
             return redirect("/projects")
 
         session["attempts"] = session.get("attempts", 0) + 1
-        if session["attempts"] >= MAX_LOGIN_ATTEMPTS:
+        left = MAX_LOGIN_ATTEMPTS - session["attempts"]
+
+        if left <= 0:
             session["blocked_until"] = time.time() + BLOCK_TIME
-            alert = f"🚫 Blocked {BLOCK_TIME}s"
+            alert = f"🚫 You are blocked for {BLOCK_TIME}s"
+        else:
+            if alert:
+                alert = f"{alert} · {left} attempts left"
+            else:
+                alert = f"❌ Wrong credentials ({left} attempts left)"
 
         return render_template("login.html", alert=alert)
 
@@ -60,9 +71,17 @@ def login():
 
 @app.route("/projects")
 def projects():
+    if not session.get("admin"):
+        return redirect("/")
+
+    try:
+        projects = list_projects() or []
+    except Exception:
+        projects = []
+
     return render_template(
         "projects.html",
-        projects=list_projects(),
+        projects=projects,
         alert=get_alert()
     )
 
@@ -72,6 +91,7 @@ def forgot():
     if request.method == "POST":
         generate_code()
         return redirect("/reset")
+
     return render_template("forgot.html", alert=get_alert())
 
 
@@ -83,6 +103,7 @@ def reset():
             request.form.get("newpass")
         )
         return redirect("/")
+
     return render_template(
         "reset.html",
         alert=get_alert(),
